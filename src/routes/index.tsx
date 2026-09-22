@@ -918,6 +918,7 @@ function CalendarView({ studySessions = [], assistantSessions = [], tasks = [], 
   }, [week, now.iso]);
   const [filter, setFilter] = useState<"All" | EventType>("All");
   const { rows: schedules, error: scheduleError, create: createSchedule, update: updateSchedule, remove: removeSchedule } = useCourseSchedules();
+  const { courses: calendarCourses } = useStudentCourses();
   const courseOptions = useCourseOptions();
   const selected = week.find((day) => day.iso === selectedIso) ?? week.find((day) => day.iso === now.iso) ?? week[0]!;
 
