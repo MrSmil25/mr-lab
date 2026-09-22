@@ -242,6 +242,8 @@ export function StudyMethodsView() {
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Pilih metode belajar yang cocok hari ini, lalu jalankan pengatur waktunya. Durasi bisa kamu ubah sendiri.</p>
       </header>
 
+      <StudyTodoList />
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {methods.map((method) => {
           const Icon = method.icon;
@@ -261,7 +263,6 @@ export function StudyMethodsView() {
         })}
       </div>
 
-      <StudyTodoList />
       <MethodTimer key={active.id} method={active} />
       <Stopwatch />
       <StudyHistory />
