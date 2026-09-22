@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { studentProfile } from "@/data/profile";
-import { useStudentCourses } from "@/data/academic";
+import { useDashboard, useStudentCourses } from "@/data/academic";
 import { academicSummary, gradePoint, isCompleted } from "@/lib/gpa";
 import { GpaEyeButton, GpaValue } from "@/components/gpa-visibility";
 
@@ -38,13 +38,16 @@ export function AcademicPerformance() {
   const [goalDraft, setGoalDraft] = useState("");
 
   const { courses } = useStudentCourses();
+  const { dashboard } = useDashboard();
+  const currentSemester = dashboard?.current_semester ?? null;
 
   // Riwayat semester dan IPK dihitung langsung dari mata kuliah milik mahasiswa.
   const history = useMemo<SemesterRecord[]>(() => {
     const buckets = new Map<number, { sks: number; courses: number; points: number; gradedSks: number }>();
+    if (currentSemester) buckets.set(currentSemester, { sks: 0, courses: 0, points: 0, gradedSks: 0 });
     for (const course of courses) {
-      if (!isCompleted(course.status)) continue;
       const semester = course.semester ?? 0;
+      if (!isCompleted(course.status) && semester !== currentSemester) continue;
       const bucket = buckets.get(semester) ?? { sks: 0, courses: 0, points: 0, gradedSks: 0 };
       bucket.sks += course.sks || 0;
       bucket.courses += 1;
@@ -64,7 +67,7 @@ export function AcademicPerformance() {
         sks: value.sks,
         courses: value.courses,
       }));
-  }, [courses]);
+  }, [courses, currentSemester]);
 
   const summary = useMemo(
     () => academicSummary(courses.map(course => ({ sks: course.sks || 0, grade: course.grade ?? null, status: course.status }))),
@@ -127,14 +130,14 @@ export function AcademicPerformance() {
             <div className="space-y-2">
               {history.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Belum ada riwayat semester.</p>
-              ) : [...history].reverse().map((item, index) => (
+              ) : [...history].reverse().map((item) => (
                 <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted p-3.5">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold">{item.name}{index === 0 && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Saat ini</span>}</p>
+                    <p className="truncate text-sm font-bold">{item.name}{item.id === currentSemester && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Saat ini</span>}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{item.sks} SKS · {item.courses} mata kuliah</p>
                   </div>
                   <div className="text-right">
-                    <GpaValue value={item.gpa.toFixed(2)} className="font-display text-lg font-bold text-academic" />
+                    <GpaValue value={item.gpa > 0 ? item.gpa.toFixed(2) : "—"} className="font-display text-lg font-bold text-academic" />
                     <p className="text-[10px] text-muted-foreground">IPK</p>
                   </div>
                 </div>
