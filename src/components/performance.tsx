@@ -38,13 +38,16 @@ export function AcademicPerformance() {
   const [goalDraft, setGoalDraft] = useState("");
 
   const { courses } = useStudentCourses();
+  const { dashboard } = useDashboard();
+  const currentSemester = dashboard?.current_semester ?? null;
 
   // Riwayat semester dan IPK dihitung langsung dari mata kuliah milik mahasiswa.
   const history = useMemo<SemesterRecord[]>(() => {
     const buckets = new Map<number, { sks: number; courses: number; points: number; gradedSks: number }>();
+    if (currentSemester) buckets.set(currentSemester, { sks: 0, courses: 0, points: 0, gradedSks: 0 });
     for (const course of courses) {
-      if (!isCompleted(course.status)) continue;
       const semester = course.semester ?? 0;
+      if (!isCompleted(course.status) && semester !== currentSemester) continue;
       const bucket = buckets.get(semester) ?? { sks: 0, courses: 0, points: 0, gradedSks: 0 };
       bucket.sks += course.sks || 0;
       bucket.courses += 1;
