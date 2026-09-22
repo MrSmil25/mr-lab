@@ -321,7 +321,7 @@ function OrganizationLibrary({ organizations, actions, onBack }: { organizations
       <div className="flex gap-2 sm:col-span-2"><Button variant="academic" size="sm" onClick={saveOrganization}><Save /> Simpan</Button><Button variant="ghost" size="sm" onClick={() => setAddingOrganization(false)}><X /> Batal</Button></div>
     </section>}
 
-    {!organizations.length ? <EmptyState icon={Building2} eyebrow="Pustaka organisasi" title="Belum ada organisasi" description="Tambahkan organisasi jika kamu ingin menyimpan pekerjaan, rapat, rutinitas, tautan, atau SOP di My Room." actions={[{ label: "Tambah organisasi", icon: Plus, onClick: () => setAddingOrganization(true) }]} hints={["Bagian ini opsional", "Setiap akun memiliki ruang organisasinya sendiri"]} /> : <>
+    {!organizations.length ? <EmptyState icon={Building2} eyebrow="Pustaka organisasi" title="Belum ada organisasi" description="Tambahkan organisasi jika kamu ingin menyimpan pekerjaan, rapat, rutinitas, tautan, atau SOP di MR Labs." actions={[{ label: "Tambah organisasi", icon: Plus, onClick: () => setAddingOrganization(true) }]} hints={["Bagian ini opsional", "Setiap akun memiliki ruang organisasinya sendiri"]} /> : <>
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
         {organizations.map((organization) => <Button key={organization.id} variant={organization.id === selected?.id ? "academic" : "secondary"} size="sm" onClick={() => setSelectedId(organization.id)}>{organization.name}</Button>)}
       </div>

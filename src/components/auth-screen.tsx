@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Loader2, Mail, KeyRound } from "lucide-react";
-import logoAsset from "@/assets/logo-my-room.png";
+import logoAsset from "@/assets/mr-labs-logo.png";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -67,9 +67,9 @@ export function AuthScreen() {
     <div className="grid min-h-screen place-items-center bg-background px-4 py-10 text-foreground">
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center gap-3">
-          <img src={logoAsset} alt="Logo My Room" className="size-11 rounded-xl object-contain" />
+          <img src={logoAsset} alt="Logo MR Labs" className="h-11 w-auto max-w-44 object-contain" />
           <div>
-            <p className="font-display text-sm font-bold">MY ROOM</p>
+            <p className="font-display text-sm font-bold">MR Labs</p>
             <p className="text-xs text-muted-foreground">Your personal academic workspace</p>
           </div>
         </div>
