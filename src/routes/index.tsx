@@ -946,14 +946,15 @@ function CalendarView({ courses: calendarCourses = [], studySessions = [], assis
     // langsung ikut tampil tanpa menunggu salinan terpisah di tabel jadwal.
     const scheduledCourseCodes = new Set(schedules.map((item) => item.courseCode).filter(Boolean));
     for (const course of calendarCourses) {
-      if (["COMPLETED", "completed"].includes(course.status)) continue;
+      if (course.status && ["COMPLETED", "completed"].includes(course.status)) continue;
       if (course.code && scheduledCourseCodes.has(course.code)) continue;
       const key = dayKeyFromName(course.day);
       const [startValue = "", endValue = ""] = course.time.split(/\s*[–-]\s*/);
       const start = toTime24(startValue);
       const end = toTime24(endValue);
+      if (!key || !start) continue;
       const iso = isoOf(key);
-      if (!iso || !start) continue;
+      if (!iso) continue;
       events.push({
         id: `course-${course.code}`,
         type: "Lecture",
