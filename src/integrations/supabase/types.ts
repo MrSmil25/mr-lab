@@ -1252,6 +1252,7 @@ export type Database = {
       }
       student_profile: {
         Row: {
+          avatar_path: string | null
           completed_credits: number | null
           current_semester: number | null
           curriculum_version_id: string | null
@@ -1263,6 +1264,7 @@ export type Database = {
           target_graduation: number | null
         }
         Insert: {
+          avatar_path?: string | null
           completed_credits?: number | null
           current_semester?: number | null
           curriculum_version_id?: string | null
@@ -1274,6 +1276,7 @@ export type Database = {
           target_graduation?: number | null
         }
         Update: {
+          avatar_path?: string | null
           completed_credits?: number | null
           current_semester?: number | null
           curriculum_version_id?: string | null
