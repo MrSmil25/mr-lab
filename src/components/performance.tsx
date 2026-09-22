@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { studentProfile } from "@/data/profile";
-import { useStudentCourses } from "@/data/academic";
+import { useDashboard, useStudentCourses } from "@/data/academic";
 import { academicSummary, gradePoint, isCompleted } from "@/lib/gpa";
 import { GpaEyeButton, GpaValue } from "@/components/gpa-visibility";
 
