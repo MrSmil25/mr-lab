@@ -1101,7 +1101,7 @@ function CalendarView({ studySessions = [], assistantSessions = [], tasks = [], 
     }
 
     return events;
-  }, [schedules, tasks, studySessions, assistantSessions, milestones, routines, organizations, otherSchedules, week]);
+  }, [schedules, calendarCourses, tasks, studySessions, assistantSessions, milestones, routines, organizations, otherSchedules, week]);
 
   const byIso = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
