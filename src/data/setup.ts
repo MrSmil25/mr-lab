@@ -118,7 +118,7 @@ export function useSetup() {
           entryYear: next.entryYear,
           currentSemester: next.currentSemester,
           completed: next.completed,
-          active: next.active.map((item) => item.code),
+          active: next.active,
         }),
       )
       .catch(() => {});
