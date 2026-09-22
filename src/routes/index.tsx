@@ -918,6 +918,7 @@ function CalendarView({ studySessions = [], assistantSessions = [], tasks = [], 
   }, [week, now.iso]);
   const [filter, setFilter] = useState<"All" | EventType>("All");
   const { rows: schedules, error: scheduleError, create: createSchedule, update: updateSchedule, remove: removeSchedule } = useCourseSchedules();
+  const { courses: calendarCourses } = useStudentCourses();
   const courseOptions = useCourseOptions();
   const selected = week.find((day) => day.iso === selectedIso) ?? week.find((day) => day.iso === now.iso) ?? week[0]!;
 
@@ -942,6 +943,26 @@ function CalendarView({ studySessions = [], assistantSessions = [], tasks = [], 
       });
     }
 
+    // Mata kuliah yang jadwalnya diisi lewat "Mata Kuliah Saya" juga tampil di kalender.
+    const scheduledCourseKeys = new Set(schedules.flatMap((item) => [item.courseId, item.courseCode].filter(Boolean) as string[]));
+    for (const course of calendarCourses) {
+      if (["COMPLETED", "completed"].includes(course.status)) continue;
+      if (scheduledCourseKeys.has(course.courseId) || (course.code && scheduledCourseKeys.has(course.code))) continue;
+      const key = dayKeyFromName(course.day);
+      const iso = isoOf(key);
+      if (!iso || !course.start) continue;
+      events.push({
+        id: `course-${course.id}`,
+        type: "Lecture",
+        day: key!,
+        date: iso,
+        title: course.name || course.code,
+        start: course.start,
+        ...(course.end ? { end: course.end } : {}),
+        location: course.room || "Kampus",
+        ...(course.code ? { course: course.code } : {}),
+      });
+    }
 
     for (const task of tasks) {
       if (task.done) continue;
@@ -1080,7 +1101,7 @@ function CalendarView({ studySessions = [], assistantSessions = [], tasks = [], 
     }
 
     return events;
-  }, [schedules, tasks, studySessions, assistantSessions, milestones, routines, organizations, otherSchedules, week]);
+  }, [schedules, calendarCourses, tasks, studySessions, assistantSessions, milestones, routines, organizations, otherSchedules, week]);
 
   const byIso = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
