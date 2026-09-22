@@ -5,7 +5,7 @@ import {
   MapPin, Milestone, MoreHorizontal, NotebookPen, Paperclip, Pencil, Plus, Repeat2, Save, Search, Settings, Target, Timer, Trash2, UserRound, X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import logoAsset from "@/assets/logo-my-room.png";
+import logoAsset from "@/assets/mr-labs-logo.png";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
@@ -45,6 +45,8 @@ import { DAY_KEYS, addDaysIso, shiftMonthIso, dayKeyFromName, dayKeyOfIso, forma
 import { buildReminders, buildTimeline, type AgendaEvent, type TimelineItem } from "@/lib/academic-agenda";
 import { academicSummary } from "@/lib/gpa";
 import { useOrganizations, type Organization } from "@/data/organizations";
+import { useProfileAvatar } from "@/data/profile-avatar";
+import { ProfileAvatar } from "@/components/profile-avatar";
 import { ROUTINE_DAY_LABELS, ROUTINE_DAYS, ROUTINE_TYPES, useRoutines, type Routine, type RoutineDay, type RoutineType } from "@/data/routines";
 import { OTHER_SCHEDULE_TYPES, useOtherSchedules, type OtherSchedule, type OtherScheduleType } from "@/data/other-schedules";
 
@@ -181,10 +183,10 @@ function taskFromRow(row: TaskRow, index: number, todayIso: string): Task {
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
-    { title: "My Room — Personal Academic Workspace" },
-    { name: "description", content: "My Room, your personal academic command center for courses, schedules, tasks, and study materials." },
-    { property: "og:title", content: "My Room — Personal Academic Workspace" },
-    { property: "og:description", content: "A personal academic command center for a FEB UI Management student." },
+    { title: "MR Labs — Ruang Akademik Personal" },
+    { name: "description", content: "MR Labs, ruang akademik personal untuk mata kuliah, jadwal, tugas, dan materi belajar." },
+    { property: "og:title", content: "MR Labs — Ruang Akademik Personal" },
+    { property: "og:description", content: "Kelola mata kuliah, jadwal, tugas, dan materi belajar dalam satu tempat." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
   ] }),
@@ -228,6 +230,7 @@ function AcademicApp({ userId }: { userId: string }) {
   };
   const semesterData = useSemesterData();
   const { dashboard, refresh: refreshDashboard } = useDashboard();
+  const profileAvatar = useProfileAvatar();
   const { courses: liveCourses, refresh: refreshLiveCourses } = useStudentCourses();
   const { rows: curriculumRows, loading: curriculumLoading, refresh: refreshCurriculum } = useCurriculum();
   const library = useLibrary();
@@ -415,11 +418,11 @@ function AcademicApp({ userId }: { userId: string }) {
 
   return (
     <div className="min-h-screen bg-background pb-24 text-foreground md:pb-8">
-      <DesktopHeader view={view} navigate={navigate} onSearch={() => setSearchOpen(true)} onNotifications={() => setNotifOpen(true)} notificationCount={notifications.unreadCount} onSettings={() => navigate("settings")} />
+      <DesktopHeader view={view} navigate={navigate} onSearch={() => setSearchOpen(true)} onNotifications={() => setNotifOpen(true)} notificationCount={notifications.unreadCount} onSettings={() => navigate("settings")} avatarUrl={profileAvatar.avatarUrl} profileName={dashboard?.student_name || setup?.name || studentProfile.name} />
       <main className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 md:py-8">
         {exam ? <StudyCommandCenter event={exam} onBack={() => setExam(null)} sessions={studySessions} onAddSession={addStudySession} onRemoveSession={removeStudySession} /> : workspace ? <CourseWorkspace course={workspace} onBack={() => setWorkspace(null)} onOpenExam={openExamForCourse} links={semesterData.links.filter((link) => link.code === workspace.code)} onAddLink={semesterData.addLink} onRemoveLink={semesterData.removeLink} sessions={semesterData.sessions.filter((session) => session.code === workspace.code)} onAddSession={semesterData.addSession} onRemoveSession={semesterData.removeSession} /> : journey ? <AcademicJourney onBack={() => setJourney(false)} onOpenCourse={openCurriculumCourse} setup={setup} credits={{ completedSks: dashboard?.completed_credits ?? null, requiredSks: dashboard?.minimum_graduation_credit ?? null }} /> : (
           <div key={view} className="page-enter">
-            {view === "home" && <HomeView tasks={tasks} toggleTask={toggleTask} navigate={navigate} onOpenExam={setExam} onOpenJourney={() => { setJourney(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} onSearch={() => setSearchOpen(true)} onNotifications={() => setNotifOpen(true)} notificationCount={notifications.unreadCount} studySessions={studySessions.length} resourcesAdded={resourcesAdded + notesAdded} profile={setup} myCourses={myCourses} onEditSetup={openSetupEditor} semesterData={semesterData} organizations={organizationData.organizations} otherSchedules={otherScheduleData.schedules} onAddOtherSchedule={otherScheduleData.addSchedule} onRemoveOtherSchedule={otherScheduleData.removeSchedule} onAddRoutine={routineData.addRoutine} onSettings={() => navigate("settings")} dashboard={dashboard} summary={summary} clock={clock} onOpenCourse={setWorkspace} />}
+            {view === "home" && <HomeView tasks={tasks} toggleTask={toggleTask} navigate={navigate} onOpenExam={setExam} onOpenJourney={() => { setJourney(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} onSearch={() => setSearchOpen(true)} onNotifications={() => setNotifOpen(true)} notificationCount={notifications.unreadCount} studySessions={studySessions.length} resourcesAdded={resourcesAdded + notesAdded} profile={setup} myCourses={myCourses} onEditSetup={openSetupEditor} semesterData={semesterData} organizations={organizationData.organizations} otherSchedules={otherScheduleData.schedules} onAddOtherSchedule={otherScheduleData.addSchedule} onRemoveOtherSchedule={otherScheduleData.removeSchedule} onAddRoutine={routineData.addRoutine} onSettings={() => navigate("settings")} dashboard={dashboard} summary={summary} clock={clock} onOpenCourse={setWorkspace} avatarUrl={profileAvatar.avatarUrl} />}
             {view === "courses" && <CoursesView onOpen={setWorkspace} courses={myCourses} semesterLabel={setup ? `Semester ${setup.currentSemester}` : `Semester ${dashboard?.current_semester ?? 1}`} todayName={clock.dayKey} summary={summary} />}
             {view === "curriculum" && <CurriculumExplorer rows={curriculumRows} loading={curriculumLoading} dashboard={dashboard} onOpenSetup={openSetupEditor} />}
             {view === "planner" && <KrsPlanner rows={curriculumRows} loading={curriculumLoading} dashboard={dashboard} userId={userId} onOpenSetup={openSetupEditor} onSaved={() => { void refreshCurriculum(); void refreshLiveCourses(); void refreshDashboard(); }} />}
@@ -427,7 +430,7 @@ function AcademicApp({ userId }: { userId: string }) {
             {view === "tasks" && <TasksView tasks={tasks} toggleTask={toggleTask} updateTask={updateTask} addTask={addTask} deleteTask={deleteTask} navigate={navigate} courses={myCourses} todayIso={clock.iso} />}
             {view === "library" && <LibraryView library={library} organizations={organizationData.organizations} organizationActions={organizationData} />}
             {view === "study" && <StudyMethodsView />}
-            {view === "settings" && <SettingsView setup={setup} data={exportData} progress={degreeProgress(setup?.completed ?? [])} onBack={() => navigate("home")} onEditSetup={openSetupEditor} />}
+            {view === "settings" && <SettingsView setup={setup} data={exportData} progress={degreeProgress(setup?.completed ?? [])} onBack={() => navigate("home")} onEditSetup={openSetupEditor} avatarUrl={profileAvatar.avatarUrl} hasAvatar={profileAvatar.hasAvatar} onUploadAvatar={profileAvatar.upload} onRemoveAvatar={profileAvatar.remove} />}
           </div>
         )}
       </main>
@@ -478,10 +481,10 @@ function AcademicApp({ userId }: { userId: string }) {
 }
 
 function Brand() {
-  return <div className="flex min-w-0 items-center gap-3"><img src={logoAsset} alt="Logo My Room" className="size-10 shrink-0 rounded-xl object-contain" /><div className="min-w-0"><p className="font-display text-sm font-bold">MY ROOM</p><p className="truncate text-xs text-muted-foreground">{studentProfile.university}</p></div></div>;
+  return <div className="flex min-w-0 items-center gap-3"><img src={logoAsset} alt="Logo MR Labs" className="h-10 w-auto max-w-40 shrink-0 object-contain" /><span className="sr-only">MR Labs</span></div>;
 }
 
-function DesktopHeader({ view, navigate, onSearch, onNotifications, notificationCount, onSettings }: { view: View; navigate: (view: View) => void; onSearch: () => void; onNotifications: () => void; notificationCount: number; onSettings: () => void }) {
+function DesktopHeader({ view, navigate, onSearch, onNotifications, notificationCount, onSettings, avatarUrl, profileName }: { view: View; navigate: (view: View) => void; onSearch: () => void; onNotifications: () => void; notificationCount: number; onSettings: () => void; avatarUrl: string | null; profileName: string }) {
   const inOthers = otherNavItems.some((item) => item.id === view);
   return <header className="sticky top-0 z-30 hidden border-b border-border bg-surface/95 backdrop-blur md:block"><div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-6"><Brand /><nav className="flex gap-1">{navItems.map(({ id, label }) => <Button key={id} variant={view === id ? "academic" : "ghost"} onClick={() => navigate(id)}>{label}</Button>)}
     <DropdownMenu>
@@ -490,7 +493,7 @@ function DesktopHeader({ view, navigate, onSearch, onNotifications, notification
         {otherNavItems.map(({ id, label, icon: Icon }) => <DropdownMenuItem key={id} onSelect={() => navigate(id)} className="gap-2 text-sm font-semibold"><Icon className="size-4 text-academic" />{label}</DropdownMenuItem>)}
       </DropdownMenuContent>
     </DropdownMenu>
-  </nav><div className="flex items-center gap-2"><button onClick={onSearch} aria-label="Cari" className="grid size-9 place-items-center rounded-full bg-muted text-academic transition-colors hover:bg-accent"><Search className="size-4" /></button><NotificationBell count={notificationCount} onClick={onNotifications} /><button onClick={onSettings} aria-label="Pengaturan" className={`grid size-9 place-items-center rounded-full transition-colors ${view === "settings" ? "bg-academic text-academic-foreground" : "bg-muted text-academic hover:bg-accent"}`}><Settings className="size-4" /></button><button onClick={onSettings} aria-label="Profil kamu" className="grid size-9 place-items-center rounded-full bg-academic text-sm font-bold text-academic-foreground">{studentProfile.initials}</button></div></div></header>;
+  </nav><div className="flex items-center gap-2"><button onClick={onSearch} aria-label="Cari" className="grid size-9 place-items-center rounded-full bg-muted text-academic transition-colors hover:bg-accent"><Search className="size-4" /></button><NotificationBell count={notificationCount} onClick={onNotifications} /><button onClick={onSettings} aria-label="Pengaturan" className={`grid size-9 place-items-center rounded-full transition-colors ${view === "settings" ? "bg-academic text-academic-foreground" : "bg-muted text-academic hover:bg-accent"}`}><Settings className="size-4" /></button><button onClick={onSettings} aria-label="Profil kamu" className="rounded-full"><ProfileAvatar src={avatarUrl} name={profileName} className="size-9" /></button></div></div></header>;
 }
 
 
@@ -527,7 +530,7 @@ function MobileTop({ eyebrow, title, action }: { eyebrow: string; title: React.R
 
 function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) { return <div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-base font-bold md:text-lg">{title}</h2>{action}</div>; }
 
-function HomeView({ tasks, toggleTask, navigate, onOpenExam, onOpenJourney, onSearch, onNotifications, notificationCount, studySessions, resourcesAdded, profile, myCourses, onEditSetup, semesterData, organizations, otherSchedules, onAddOtherSchedule, onRemoveOtherSchedule, onAddRoutine, onSettings, dashboard, summary, clock, onOpenCourse }: { tasks: Task[]; toggleTask: (id: number) => void; navigate: (view: View) => void; onOpenExam: (exam: Exam) => void; onOpenJourney: () => void; onSearch: () => void; onNotifications: () => void; notificationCount: number; studySessions: number; resourcesAdded: number; profile: StudentSetup | null; myCourses: Course[]; onEditSetup: () => void; semesterData: ReturnType<typeof useSemesterData>; organizations: Organization[]; otherSchedules: OtherSchedule[]; onAddOtherSchedule: (schedule: Omit<OtherSchedule, "id">) => void; onRemoveOtherSchedule: (id: number) => void; onAddRoutine: (routine: Omit<Routine, "id">) => void; onSettings: () => void; dashboard: DashboardRow | null; summary: ReturnType<typeof academicSummary>; clock: ReturnType<typeof jakartaNow>; onOpenCourse: (course: Course) => void }) {
+function HomeView({ tasks, toggleTask, navigate, onOpenExam, onOpenJourney, onSearch, onNotifications, notificationCount, studySessions, resourcesAdded, profile, myCourses, onEditSetup, semesterData, organizations, otherSchedules, onAddOtherSchedule, onRemoveOtherSchedule, onAddRoutine, onSettings, dashboard, summary, clock, onOpenCourse, avatarUrl }: { tasks: Task[]; toggleTask: (id: number) => void; navigate: (view: View) => void; onOpenExam: (exam: Exam) => void; onOpenJourney: () => void; onSearch: () => void; onNotifications: () => void; notificationCount: number; studySessions: number; resourcesAdded: number; profile: StudentSetup | null; myCourses: Course[]; onEditSetup: () => void; semesterData: ReturnType<typeof useSemesterData>; organizations: Organization[]; otherSchedules: OtherSchedule[]; onAddOtherSchedule: (schedule: Omit<OtherSchedule, "id">) => void; onRemoveOtherSchedule: (id: number) => void; onAddRoutine: (routine: Omit<Routine, "id">) => void; onSettings: () => void; dashboard: DashboardRow | null; summary: ReturnType<typeof academicSummary>; clock: ReturnType<typeof jakartaNow>; onOpenCourse: (course: Course) => void; avatarUrl: string | null }) {
   const { dayName } = useNow();
   const [addingSchedule, setAddingSchedule] = useState(false);
   const [scheduleMode, setScheduleMode] = useState<"once" | "weekly" | null>(null);
@@ -644,7 +647,7 @@ function HomeView({ tasks, toggleTask, navigate, onOpenExam, onOpenJourney, onSe
     <div className="mb-4 flex items-center justify-end gap-2 md:hidden">
       <button onClick={onSearch} aria-label="Cari" className="grid size-9 place-items-center rounded-full bg-muted text-academic"><Search className="size-4" /></button>
       <NotificationBell count={notificationCount} onClick={onNotifications} />
-      <button onClick={onSettings} aria-label="Profil dan pengaturan" className="grid size-9 place-items-center rounded-full bg-academic text-xs font-bold text-academic-foreground">{(studentName.split(" ").map((part) => part[0]).join("").slice(0, 2) || "M").toUpperCase()}</button>
+      <button onClick={onSettings} aria-label="Profil dan pengaturan" className="rounded-full"><ProfileAvatar src={avatarUrl} name={studentName} className="size-9" /></button>
     </div>
 
     <div className="space-y-8">
