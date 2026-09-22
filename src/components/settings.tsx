@@ -1,6 +1,7 @@
-import { ArrowLeft, BookOpen, Check, Download, FileSpreadsheet, FileJson, GraduationCap, Pencil, UserRound } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, BookOpen, Camera, Check, Download, FileSpreadsheet, FileJson, GraduationCap, Loader2, Pencil, Trash2, UserRound } from "lucide-react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ProfileAvatar } from "@/components/profile-avatar";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { curriculum, curriculumStructure, TOTAL_SKS } from "@/data/curriculum";
@@ -17,17 +18,52 @@ const exportSections: { id: ExportSection; label: string; description: string }[
 ];
 
 export function SettingsView({
-  setup, data, progress, onBack, onEditSetup,
+  setup, data, progress, onBack, onEditSetup, avatarUrl, hasAvatar, onUploadAvatar, onRemoveAvatar,
 }: {
   setup: StudentSetup | null;
   data: AcademicExport;
   progress: { completedSks: number; remainingSks: number; totalSks: number; percent: number };
   onBack: () => void;
   onEditSetup: () => void;
+  avatarUrl: string | null;
+  hasAvatar: boolean;
+  onUploadAvatar: (file: File) => Promise<void>;
+  onRemoveAvatar: () => Promise<void>;
 }) {
   const { identity, loading: identityLoading } = useAcademicIdentity();
   const [selected, setSelected] = useState<ExportSection[]>(exportSections.map((section) => section.id));
   const [message, setMessage] = useState("");
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarMessage, setAvatarMessage] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  const changeAvatar = async (file?: File) => {
+    if (!file) return;
+    setAvatarBusy(true);
+    setAvatarMessage("");
+    try {
+      await onUploadAvatar(file);
+      setAvatarMessage("Foto profil berhasil diperbarui.");
+    } catch (error) {
+      setAvatarMessage(error instanceof Error ? error.message : "Foto belum berhasil diunggah.");
+    } finally {
+      setAvatarBusy(false);
+      if (fileInput.current) fileInput.current.value = "";
+    }
+  };
+
+  const deleteAvatar = async () => {
+    setAvatarBusy(true);
+    setAvatarMessage("");
+    try {
+      await onRemoveAvatar();
+      setAvatarMessage("Foto profil dihapus.");
+    } catch (error) {
+      setAvatarMessage(error instanceof Error ? error.message : "Foto belum berhasil dihapus.");
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
 
   const toggle = (id: ExportSection) =>
     setSelected((items) => (items.includes(id) ? items.filter((item) => item !== id) : [...items, id]));
@@ -71,6 +107,19 @@ export function SettingsView({
           <div className="grid gap-4">
             <section className="academic-card p-5 md:p-6">
               <div className="mb-5 flex items-center gap-2"><UserRound className="size-5 text-academic" /><h2 className="text-base font-bold">Student profile</h2></div>
+              <div className="mb-5 flex flex-wrap items-center gap-4 border-b border-border pb-5">
+                <ProfileAvatar src={avatarUrl} name={identity?.fullName ?? setup?.name ?? "Mahasiswa"} className="size-20" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold">Foto profil</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">JPG, PNG, atau WebP hingga 5 MB. Foto hanya dapat dikelola oleh akunmu.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => void changeAvatar(event.target.files?.[0])} />
+                    <Button type="button" variant="academic" size="sm" disabled={avatarBusy} onClick={() => fileInput.current?.click()}>{avatarBusy ? <Loader2 className="animate-spin" /> : <Camera />}{hasAvatar ? "Ganti foto" : "Unggah foto"}</Button>
+                    {hasAvatar && <Button type="button" variant="outline" size="sm" disabled={avatarBusy} onClick={() => void deleteAvatar()}><Trash2 />Hapus</Button>}
+                  </div>
+                  {avatarMessage && <p className="mt-2 text-xs font-medium text-muted-foreground">{avatarMessage}</p>}
+                </div>
+              </div>
               {identityLoading ? (
                 <p className="text-sm text-muted-foreground">Loading your academic identity…</p>
               ) : (

@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ClipboardList, Clock3, MapPin, Plus, Sparkles, Trash2, UserRound } from "lucide-react";
-import logoAsset from "@/assets/logo-my-room.png";
+import logoAsset from "@/assets/mr-labs-logo.png";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -145,7 +145,7 @@ export function Onboarding({ onComplete, initial = null, onCancel }: { onComplet
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-5 py-4">
-          <img src={logoAsset} alt="Logo My Room" className="size-10 shrink-0 rounded-xl object-contain" />
+          <img src={logoAsset} alt="Logo MR Labs" className="h-10 w-auto max-w-40 shrink-0 object-contain" />
           <div className="min-w-0">
             <p className="font-display text-sm font-bold">{editing ? "PERBARUI DATA AKADEMIKMU" : "MARI ATUR KEHIDUPAN AKADEMIKMU"}</p>
             <p className="truncate text-xs text-muted-foreground">Langkah {step} dari {steps.length} · {steps[step - 1]?.label}</p>

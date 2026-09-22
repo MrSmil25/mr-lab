@@ -9,10 +9,10 @@ export const Route = createFileRoute("/reset-password")({
   component: ResetPasswordPage,
   head: () => ({
     meta: [
-      { title: "Reset password · MY ROOM" },
-      { name: "description", content: "Set a new password for your MY ROOM academic workspace." },
-      { property: "og:title", content: "Reset password · MY ROOM" },
-      { property: "og:description", content: "Set a new password for your MY ROOM academic workspace." },
+      { title: "Reset password · MR Labs" },
+      { name: "description", content: "Atur password baru untuk ruang akademik MR Labs." },
+      { property: "og:title", content: "Reset password · MR Labs" },
+      { property: "og:description", content: "Atur password baru untuk ruang akademik MR Labs." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

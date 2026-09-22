@@ -10,3 +10,5 @@
 - [x] Tambahkan Jadwal lainnya untuk agenda nonkelas mulai besok.
 - [x] Hubungkan agenda asistensi, organisasi, dan agenda buatan pengguna ke Jadwal lainnya.
 - [x] Hapus tampilan Jadwal hari ini/Mingguan dan panel Agenda pada Kalender Akademik.
+- [x] Ubah identitas aplikasi menjadi MR Labs dengan logo biru-kuning.
+- [x] Tambahkan foto profil privat yang dapat diunggah tiap akun.
