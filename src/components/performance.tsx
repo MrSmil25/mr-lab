@@ -130,14 +130,14 @@ export function AcademicPerformance() {
             <div className="space-y-2">
               {history.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Belum ada riwayat semester.</p>
-              ) : [...history].reverse().map((item, index) => (
+              ) : [...history].reverse().map((item) => (
                 <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted p-3.5">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold">{item.name}{item.id === currentSemester && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Saat ini</span>}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{item.sks} SKS · {item.courses} mata kuliah</p>
                   </div>
                   <div className="text-right">
-                    <GpaValue value={item.gpa.toFixed(2)} className="font-display text-lg font-bold text-academic" />
+                    <GpaValue value={item.gpa > 0 ? item.gpa.toFixed(2) : "—"} className="font-display text-lg font-bold text-academic" />
                     <p className="text-[10px] text-muted-foreground">IPK</p>
                   </div>
                 </div>
