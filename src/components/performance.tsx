@@ -67,7 +67,7 @@ export function AcademicPerformance() {
         sks: value.sks,
         courses: value.courses,
       }));
-  }, [courses]);
+  }, [courses, currentSemester]);
 
   const summary = useMemo(
     () => academicSummary(courses.map(course => ({ sks: course.sks || 0, grade: course.grade ?? null, status: course.status }))),
@@ -133,7 +133,7 @@ export function AcademicPerformance() {
               ) : [...history].reverse().map((item, index) => (
                 <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted p-3.5">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold">{item.name}{index === 0 && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Saat ini</span>}</p>
+                    <p className="truncate text-sm font-bold">{item.name}{item.id === currentSemester && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Saat ini</span>}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{item.sks} SKS · {item.courses} mata kuliah</p>
                   </div>
                   <div className="text-right">
