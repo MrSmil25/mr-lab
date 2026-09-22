@@ -943,6 +943,26 @@ function CalendarView({ studySessions = [], assistantSessions = [], tasks = [], 
       });
     }
 
+    // Mata kuliah yang jadwalnya diisi lewat "Mata Kuliah Saya" juga tampil di kalender.
+    const scheduledCourseKeys = new Set(schedules.flatMap((item) => [item.courseId, item.courseCode].filter(Boolean) as string[]));
+    for (const course of calendarCourses) {
+      if (["COMPLETED", "completed"].includes(course.status)) continue;
+      if (scheduledCourseKeys.has(course.courseId) || (course.code && scheduledCourseKeys.has(course.code))) continue;
+      const key = dayKeyFromName(course.day);
+      const iso = isoOf(key);
+      if (!iso || !course.start) continue;
+      events.push({
+        id: `course-${course.id}`,
+        type: "Lecture",
+        day: key!,
+        date: iso,
+        title: course.name || course.code,
+        start: course.start,
+        ...(course.end ? { end: course.end } : {}),
+        location: course.room || "Kampus",
+        ...(course.code ? { course: course.code } : {}),
+      });
+    }
 
     for (const task of tasks) {
       if (task.done) continue;
