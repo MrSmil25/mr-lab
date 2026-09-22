@@ -37,7 +37,7 @@ import { GpaEyeButton, GpaValue } from "@/components/gpa-visibility";
 import { AuthScreen } from "@/components/auth-screen";
 import { CurriculumExplorer } from "@/components/curriculum-explorer";
 import { KrsPlanner } from "@/components/krs-planner";
-import { useCurriculum, useDashboard, useLibrary, useStudentCourses, type DashboardRow, type StudentCourse } from "@/data/academic";
+import { useCurriculum, useDashboard, useLibrary, useStudentCourses, type DashboardRow } from "@/data/academic";
 import { parseDueLabelToIso } from "@/lib/jakarta-time";
 import { useAcademicMilestones, useStudentTasks, type MilestoneRow, type TaskRow } from "@/data/tasks";
 import { useCourseOptions, useCourseSchedules, type ScheduleInput, type ScheduleRow } from "@/data/schedules";
@@ -426,7 +426,7 @@ function AcademicApp({ userId }: { userId: string }) {
             {view === "courses" && <CoursesView onOpen={setWorkspace} courses={myCourses} semesterLabel={setup ? `Semester ${setup.currentSemester}` : `Semester ${dashboard?.current_semester ?? 1}`} todayName={clock.dayKey} summary={summary} />}
             {view === "curriculum" && <CurriculumExplorer rows={curriculumRows} loading={curriculumLoading} dashboard={dashboard} onOpenSetup={openSetupEditor} />}
             {view === "planner" && <KrsPlanner rows={curriculumRows} loading={curriculumLoading} dashboard={dashboard} userId={userId} onOpenSetup={openSetupEditor} onSaved={() => { void refreshCurriculum(); void refreshLiveCourses(); void refreshDashboard(); }} />}
-            {view === "calendar" && <CalendarView studySessions={studySessions} assistantSessions={semesterData.sessions} tasks={tasks} milestones={milestoneRows} routines={routineData.routines} organizations={organizationData.organizations} otherSchedules={otherScheduleData.schedules} onRemoveRoutine={routineData.removeRoutine} />}
+            {view === "calendar" && <CalendarView courses={myCourses} studySessions={studySessions} assistantSessions={semesterData.sessions} tasks={tasks} milestones={milestoneRows} routines={routineData.routines} organizations={organizationData.organizations} otherSchedules={otherScheduleData.schedules} onRemoveRoutine={routineData.removeRoutine} />}
             {view === "tasks" && <TasksView tasks={tasks} toggleTask={toggleTask} updateTask={updateTask} addTask={addTask} deleteTask={deleteTask} navigate={navigate} courses={myCourses} todayIso={clock.iso} />}
             {view === "library" && <LibraryView library={library} organizations={organizationData.organizations} organizationActions={organizationData} />}
             {view === "study" && <StudyMethodsView />}
@@ -908,7 +908,7 @@ function ScheduleManager({ rows, options, error, onCreate, onUpdate, onRemove }:
 
 
 
-function CalendarView({ studySessions = [], assistantSessions = [], tasks = [], milestones = [], routines = [], organizations = [], otherSchedules = [], onRemoveRoutine }: { studySessions?: PlannedSession[]; assistantSessions?: AssistantSession[]; tasks?: Task[]; milestones?: MilestoneRow[]; routines?: Routine[]; organizations?: Organization[]; otherSchedules?: OtherSchedule[]; onRemoveRoutine?: (id: number) => void }) {
+function CalendarView({ courses: calendarCourses = [], studySessions = [], assistantSessions = [], tasks = [], milestones = [], routines = [], organizations = [], otherSchedules = [], onRemoveRoutine }: { courses?: Course[]; studySessions?: PlannedSession[]; assistantSessions?: AssistantSession[]; tasks?: Task[]; milestones?: MilestoneRow[]; routines?: Routine[]; organizations?: Organization[]; otherSchedules?: OtherSchedule[]; onRemoveRoutine?: (id: number) => void }) {
   const now = useJakartaClock();
   const [viewIso, setViewIso] = useState(now.iso);
   const week = useMemo(() => weekOf(viewIso), [viewIso]);
@@ -918,7 +918,6 @@ function CalendarView({ studySessions = [], assistantSessions = [], tasks = [], 
   }, [week, now.iso]);
   const [filter, setFilter] = useState<"All" | EventType>("All");
   const { rows: schedules, error: scheduleError, create: createSchedule, update: updateSchedule, remove: removeSchedule } = useCourseSchedules();
-  const { courses: calendarCourses } = useStudentCourses();
   const courseOptions = useCourseOptions();
   const selected = week.find((day) => day.iso === selectedIso) ?? week.find((day) => day.iso === now.iso) ?? week[0]!;
 
@@ -943,22 +942,26 @@ function CalendarView({ studySessions = [], assistantSessions = [], tasks = [], 
       });
     }
 
-    // Mata kuliah yang jadwalnya diisi lewat "Mata Kuliah Saya" juga tampil di kalender.
-    const scheduledCourseKeys = new Set(schedules.flatMap((item) => [item.courseId, item.courseCode].filter(Boolean) as string[]));
+    // Mata kuliah aktif dari Data Akademik, termasuk kurikulum buatan sendiri,
+    // langsung ikut tampil tanpa menunggu salinan terpisah di tabel jadwal.
+    const scheduledCourseCodes = new Set(schedules.map((item) => item.courseCode).filter(Boolean));
     for (const course of calendarCourses) {
       if (["COMPLETED", "completed"].includes(course.status)) continue;
-      if (scheduledCourseKeys.has(course.courseId) || (course.code && scheduledCourseKeys.has(course.code))) continue;
+      if (course.code && scheduledCourseCodes.has(course.code)) continue;
       const key = dayKeyFromName(course.day);
+      const [startValue = "", endValue = ""] = course.time.split(/\s*[–-]\s*/);
+      const start = toTime24(startValue);
+      const end = toTime24(endValue);
       const iso = isoOf(key);
-      if (!iso || !course.start) continue;
+      if (!iso || !start) continue;
       events.push({
-        id: `course-${course.id}`,
+        id: `course-${course.code}`,
         type: "Lecture",
-        day: key!,
+        day: key,
         date: iso,
-        title: course.name || course.code,
-        start: course.start,
-        ...(course.end ? { end: course.end } : {}),
+        title: course.title || course.code,
+        start,
+        ...(end ? { end } : {}),
         location: course.room || "Kampus",
         ...(course.code ? { course: course.code } : {}),
       });
