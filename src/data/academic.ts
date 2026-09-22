@@ -630,7 +630,7 @@ export async function syncProfileFromSetup(setup: {
   entryYear: number;
   currentSemester: number;
   completed: string[];
-  active?: string[];
+  active?: { code: string; section: string; lecturer: string; day: string; start: string; end: string; room: string }[];
 }): Promise<void> {
   const userId = await currentUserId();
   if (!userId) return;
@@ -655,7 +655,8 @@ export async function syncProfileFromSetup(setup: {
   const clean = (codes: string[]) => [...new Set(codes.map((code) => code.trim()).filter(Boolean))];
   const completedCodes = clean(setup.completed);
   // A course can never be completed and ongoing at the same time.
-  const activeCodes = clean(setup.active ?? []).filter((code) => !completedCodes.includes(code));
+  const activeByCode = new Map((setup.active ?? []).map((course) => [course.code.trim(), course]));
+  const activeCodes = clean([...activeByCode.keys()]).filter((code) => !completedCodes.includes(code));
   const wanted = [...completedCodes, ...activeCodes];
 
   let master: { id: string; credits: number | null; course_code: string | null }[] = [];
@@ -719,10 +720,22 @@ export async function syncProfileFromSetup(setup: {
     course_status: string;
     taken_semester?: number;
     semester_taken?: number;
+    class_section?: string;
+    lecturer?: string;
+    schedule?: string;
+    room?: string;
   }[] = [];
   for (const [courseId, kind] of desired) {
     const status = kind === "completed" ? "completed" : "ongoing";
     const courseStatus = kind === "completed" ? "COMPLETED" : "ONGOING";
+    const courseCode = master.find((course) => course.id === courseId)?.course_code ?? "";
+    const config = kind === "ongoing" ? activeByCode.get(courseCode) : undefined;
+    const classDetails = config ? {
+      class_section: config.section,
+      lecturer: config.lecturer.trim() || null,
+      schedule: `${config.day} ${config.start}-${config.end}`,
+      room: config.room.trim() || null,
+    } : {};
     const match = firstByCourse.get(courseId);
     if (!match) {
       inserts.push({
@@ -730,13 +743,15 @@ export async function syncProfileFromSetup(setup: {
         course_id: courseId,
         status,
         course_status: courseStatus,
+        ...classDetails,
         ...(kind === "ongoing" ? { taken_semester: setup.currentSemester, semester_taken: setup.currentSemester } : {}),
       });
       continue;
     }
-    if (match.status !== status || match.course_status !== courseStatus) {
-      await supabase.from("student_courses").update({ status, course_status: courseStatus }).eq("id", match.id);
-    }
+    await supabase
+      .from("student_courses")
+      .update({ status, course_status: courseStatus, ...classDetails })
+      .eq("id", match.id);
   }
   if (inserts.length) await supabase.from("student_courses").insert(inserts);
 
