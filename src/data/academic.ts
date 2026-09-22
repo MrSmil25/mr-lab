@@ -721,9 +721,9 @@ export async function syncProfileFromSetup(setup: {
     taken_semester?: number;
     semester_taken?: number;
     class_section?: string;
-    lecturer?: string;
+    lecturer?: string | null;
     schedule?: string;
-    room?: string;
+    room?: string | null;
   }[] = [];
   for (const [courseId, kind] of desired) {
     const status = kind === "completed" ? "completed" : "ongoing";
