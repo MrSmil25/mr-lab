@@ -93,7 +93,7 @@ export function StudyNotes() {
                   variant="ghost"
                   size="icon"
                   aria-label={`Hapus catatan ${note.title}`}
-                  onClick={() => setNotes((items) => items.filter((item) => item.id !== note.id))}
+                  onClick={() => setNotes(notes.filter((item) => item.id !== note.id))}
                 >
                   <Trash2 className="size-4" />
                 </Button>
