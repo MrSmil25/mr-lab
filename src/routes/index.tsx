@@ -131,14 +131,8 @@ const eventStyles: Record<EventType, { bar: string; dot: string; chip: string; l
   Todo: { bar: "bg-muted-foreground", dot: "bg-muted-foreground", chip: "bg-muted text-muted-foreground", label: "To-do", icon: ListTodo },
 };
 
-const taskCategories: TaskCategory[] = ["Accounting", "Marketing", "Entrepreneurship", "Research"];
-
-const courseOptions: { course: string; courseCode: string; category: TaskCategory }[] = [
-  { course: "Akuntansi Manajemen untuk Bisnis", courseCode: "ECAC600056", category: "Accounting" },
-  { course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing" },
-  { course: "Bisnis Internasional", courseCode: "ECMN600020", category: "Entrepreneurship" },
-  { course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research" },
-];
+/** Tidak ada kategori bawaan: daftar kategori tumbuh dari tugas milik pengguna. */
+const courseOptions: { course: string; courseCode: string; category: TaskCategory }[] = [];
 
 const priorityStyles: Record<Task["priority"], string> = {
   High: "bg-destructive/12 text-destructive",
