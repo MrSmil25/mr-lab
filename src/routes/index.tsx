@@ -78,7 +78,8 @@ function useNow() {
   };
 }
 
-type TaskCategory = "Accounting" | "Marketing" | "Entrepreneurship" | "Research";
+/** Kategori tugas dibuat sendiri oleh tiap pengguna, jadi bebas teks. */
+type TaskCategory = string;
 type TaskStatus = "Not started" | "In progress" | "Completed";
 type ChecklistItem = { id: number; label: string; done: boolean };
 type TaskResource = { id: number; kind: "file" | "link"; title: string; ext?: string; size?: number; url?: string };
