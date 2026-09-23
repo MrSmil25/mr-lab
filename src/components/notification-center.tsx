@@ -1,6 +1,7 @@
 import { Bell, CalendarDays, Clock3, GraduationCap, ListTodo, Settings2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { addDaysIso, dayKeyFromName, dayKeyOfIso, formatDayMonthId, jakartaFromTimestamp, minutesOf, toTime24, type JakartaNow } from "@/lib/jakarta-time";
+import { onScopedHydrated, readScoped, writeScoped } from "@/lib/scoped-storage";
 
 export type NotificationTask = {
   id: number;
@@ -47,13 +48,8 @@ const READ_KEY = "harmony.notifications.read";
 
 /** Read ids kept on the device — no extra user system, no duplicated accounts. */
 function loadRead(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(READ_KEY);
-    return raw ? (JSON.parse(raw) as string[]) : [];
-  } catch {
-    return [];
-  }
+  const stored = readScoped<string[]>(READ_KEY);
+  return Array.isArray(stored) ? stored : [];
 }
 
 /**
@@ -158,18 +154,16 @@ export function useNotifications(
     return feed.sort((a, b) => rank[a.priority] - rank[b.priority] || (a.minutesUntil ?? 9_999) - (b.minutesUntil ?? 9_999));
   }, [tasks, classes, milestones, now.iso, now.minutesOfDay]);
 
-  const [read, setRead] = useState<string[]>(() => loadRead());
+  const [read, setRead] = useState<string[]>([]);
   useEffect(() => {
-    setRead(loadRead());
+    const refresh = () => setRead(loadRead());
+    refresh();
+    return onScopedHydrated(refresh);
   }, []);
 
   const persist = useCallback((next: string[]) => {
     setRead(next);
-    try {
-      window.localStorage.setItem(READ_KEY, JSON.stringify(next.slice(-200)));
-    } catch {
-      /* storage unavailable — read state stays in memory */
-    }
+    writeScoped(READ_KEY, next.slice(-200));
   }, []);
 
   const markRead = useCallback((id: string) => persist(Array.from(new Set([...read, id]))), [persist, read]);
