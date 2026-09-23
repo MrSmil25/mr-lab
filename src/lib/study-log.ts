@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { onScopedHydrated, readScoped, writeScoped } from "@/lib/scoped-storage";
 
 export type StudySession = {
   id: string;
@@ -11,20 +12,13 @@ const STORAGE_KEY = "study-sessions";
 const CHANGE_EVENT = "study-sessions-changed";
 
 function load(): StudySession[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as StudySession[]) : [];
-    return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item.seconds === "number") : [];
-  } catch {
-    return [];
-  }
+  const parsed = readScoped<StudySession[]>(STORAGE_KEY) ?? [];
+  return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item.seconds === "number") : [];
 }
 
 function save(items: StudySession[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  window.dispatchEvent(new Event(CHANGE_EVENT));
+  writeScoped(STORAGE_KEY, items);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
 export function logStudySession(method: string, seconds: number) {
@@ -52,11 +46,13 @@ export function clearStudySessions() {
 export function useStudySessions() {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   useEffect(() => {
-    setSessions(load());
     const refresh = () => setSessions(load());
+    refresh();
+    const offHydrated = onScopedHydrated(refresh);
     window.addEventListener(CHANGE_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {
+      offHydrated();
       window.removeEventListener(CHANGE_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };

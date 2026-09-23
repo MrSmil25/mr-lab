@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { courseByCode } from "@/data/curriculum";
 import type { StudentSetup } from "@/data/setup";
-import { readScoped, writeScoped } from "@/lib/scoped-storage";
+import { onScopedHydrated, readScoped, writeScoped } from "@/lib/scoped-storage";
 
 export const LINK_KINDS = ["Google Classroom", "Google Drive", "Google Sheets", "LMS (EMAS)", "Assistant link", "Other"] as const;
 export type LinkKind = (typeof LINK_KINDS)[number];
@@ -54,8 +54,12 @@ export function useSemesterData() {
   };
 
   useEffect(() => {
-    const stored = readScoped<SemesterData>(STORAGE_KEY);
-    if (stored) setData({ ...empty, ...stored });
+    const read = () => {
+      const stored = readScoped<SemesterData>(STORAGE_KEY);
+      setData(stored ? { ...empty, ...stored } : empty);
+    };
+    read();
+    return onScopedHydrated(read);
   }, []);
 
   return {

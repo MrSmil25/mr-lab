@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { curriculum, TOTAL_SKS, courseByCode } from "@/data/curriculum";
 import type { StudentSetup } from "@/data/setup";
-import { readScoped, writeScoped } from "@/lib/scoped-storage";
+import { onScopedHydrated, readScoped, writeScoped } from "@/lib/scoped-storage";
 
 export type CourseStatus = "completed" | "current" | "planned" | "upcoming" | "locked";
 
@@ -108,8 +108,12 @@ export function useRoadmap(setup: StudentSetup | null, credits?: CreditOverride)
   const [state, setState] = useState<RoadmapState>(empty);
 
   useEffect(() => {
-    const stored = readScoped<RoadmapState>(STORAGE_KEY);
-    if (stored) setState({ ...empty, ...stored });
+    const read = () => {
+      const stored = readScoped<RoadmapState>(STORAGE_KEY);
+      setState(stored ? { ...empty, ...stored } : empty);
+    };
+    read();
+    return onScopedHydrated(read);
   }, []);
 
   const write = (next: RoadmapState) => {

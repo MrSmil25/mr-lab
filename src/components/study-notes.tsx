@@ -1,8 +1,9 @@
 import { NotebookPen, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useScopedStore } from "@/lib/scoped-storage";
 
 type Note = {
   id: string;
@@ -12,17 +13,7 @@ type Note = {
 };
 
 const STORAGE_KEY = "study-notes";
-
-function load(): Note[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as Note[]) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
+const EMPTY: Note[] = [];
 
 const dateFormat = new Intl.DateTimeFormat("id-ID", {
   day: "numeric",
@@ -33,31 +24,22 @@ const dateFormat = new Intl.DateTimeFormat("id-ID", {
 });
 
 export function StudyNotes() {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useScopedStore<Note[]>(STORAGE_KEY, EMPTY);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-
-  useEffect(() => {
-    setNotes(load());
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-  }, [notes]);
 
   const addNote = () => {
     const trimmedTitle = title.trim();
     const trimmedBody = body.trim();
     if (!trimmedTitle && !trimmedBody) return;
-    setNotes((items) => [
+    setNotes([
       {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         title: trimmedTitle || "Tanpa judul",
         body: trimmedBody,
         createdAt: Date.now(),
       },
-      ...items,
+      ...notes,
     ]);
     setTitle("");
     setBody("");
@@ -111,7 +93,7 @@ export function StudyNotes() {
                   variant="ghost"
                   size="icon"
                   aria-label={`Hapus catatan ${note.title}`}
-                  onClick={() => setNotes((items) => items.filter((item) => item.id !== note.id))}
+                  onClick={() => setNotes(notes.filter((item) => item.id !== note.id))}
                 >
                   <Trash2 className="size-4" />
                 </Button>
