@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { curriculum, TOTAL_SKS, courseByCode } from "@/data/curriculum";
-import { readScoped, removeScoped, writeScoped } from "@/lib/scoped-storage";
+import { onScopedHydrated, readScoped, removeScoped, writeScoped } from "@/lib/scoped-storage";
 
 export const SECTIONS = ["A", "B", "C", "D", "E"] as const;
 export type Section = (typeof SECTIONS)[number];

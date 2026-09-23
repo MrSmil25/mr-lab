@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { readScoped, writeScoped } from "@/lib/scoped-storage";
+import { onScopedHydrated, readScoped, writeScoped } from "@/lib/scoped-storage";
 
 /**
  * Rutinitas berulang mingguan (olahraga, magang, rapat organisasi, dll.).
@@ -33,7 +33,9 @@ export function useRoutines() {
   const [routines, setRoutines] = useState<Routine[]>([]);
 
   useEffect(() => {
-    setRoutines(readScoped<Routine[]>(STORAGE_KEY) ?? []);
+    const read = () => setRoutines(readScoped<Routine[]>(STORAGE_KEY) ?? []);
+    read();
+    return onScopedHydrated(read);
   }, []);
 
   const save = (next: Routine[]) => {
