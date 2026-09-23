@@ -78,31 +78,47 @@ export function useSetup() {
         )
         .catch(() => {});
 
-    const local = loadSetup();
-    if (local) {
-      setSetupState(local);
-      activate(local);
+    const apply = (current: StudentSetup) => {
+      setSetupState(current);
+      activate(current);
       setReady(true);
-      return;
-    }
+    };
 
-    // No local copy (new device or cleared browser): rebuild it from the account.
-    void import("@/data/academic")
-      .then((academic) => academic.fetchRemoteSetup())
-      .catch(() => null)
-      .then((remote) => {
-        if (cancelled) return;
-        if (remote && remote.programId) {
-          const restored = remote as unknown as StudentSetup;
-          persistSetup(restored);
-          setSetupState(restored);
-          activate(restored);
-        }
-        setReady(true);
-      });
+    const local = loadSetup();
+    if (local) apply(local);
+
+    // Cadangan dari akun: dipakai saat perangkat baru, atau saat data di
+    // perangkat ini tertinggal dari data yang tersimpan di akun.
+    const offHydrated = onScopedHydrated(() => {
+      if (cancelled) return;
+      const restored = loadSetup();
+      if (restored) apply(restored);
+    });
+
+    if (!local) {
+      // Belum ada salinan sama sekali: susun ulang dari data akademik akun.
+      void import("@/data/academic")
+        .then((academic) => academic.fetchRemoteSetup())
+        .catch(() => null)
+        .then((remote) => {
+          if (cancelled) return;
+          const stored = loadSetup();
+          if (stored) {
+            apply(stored);
+            return;
+          }
+          if (remote && remote.programId) {
+            const restored = remote as unknown as StudentSetup;
+            persistSetup(restored);
+            apply(restored);
+          }
+          setReady(true);
+        });
+    }
 
     return () => {
       cancelled = true;
+      offHydrated();
     };
   }, []);
 
