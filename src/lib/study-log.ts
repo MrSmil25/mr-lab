@@ -46,11 +46,13 @@ export function clearStudySessions() {
 export function useStudySessions() {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   useEffect(() => {
-    setSessions(load());
     const refresh = () => setSessions(load());
+    refresh();
+    const offHydrated = onScopedHydrated(refresh);
     window.addEventListener(CHANGE_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {
+      offHydrated();
       window.removeEventListener(CHANGE_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
