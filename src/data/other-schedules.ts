@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { readScoped, writeScoped } from "@/lib/scoped-storage";
+import { onScopedHydrated, readScoped, writeScoped } from "@/lib/scoped-storage";
 
 export const OTHER_SCHEDULE_TYPES = ["Asistensi", "Rapat", "Lomba", "Konferensi", "Wawancara", "Pekerjaan organisasi", "Kegiatan lainnya"] as const;
 export type OtherScheduleType = (typeof OTHER_SCHEDULE_TYPES)[number];
@@ -24,7 +24,9 @@ export function useOtherSchedules() {
   const [schedules, setSchedules] = useState<OtherSchedule[]>([]);
 
   useEffect(() => {
-    setSchedules(readScoped<OtherSchedule[]>(STORAGE_KEY) ?? []);
+    const read = () => setSchedules(readScoped<OtherSchedule[]>(STORAGE_KEY) ?? []);
+    read();
+    return onScopedHydrated(read);
   }, []);
 
   const save = (next: OtherSchedule[]) => {

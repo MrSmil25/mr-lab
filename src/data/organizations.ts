@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { readScoped, writeScoped } from "@/lib/scoped-storage";
+import { onScopedHydrated, readScoped, writeScoped } from "@/lib/scoped-storage";
 
 export const ORGANIZATION_ITEM_TYPES = ["Tautan", "Tugas", "Rutinitas harian", "Rutinitas mingguan", "Rapat rutin", "SOP", "Lainnya"] as const;
 export type OrganizationItemType = (typeof ORGANIZATION_ITEM_TYPES)[number];
@@ -31,7 +31,9 @@ export function useOrganizations() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
 
   useEffect(() => {
-    setOrganizations(readScoped<Organization[]>(STORAGE_KEY) ?? []);
+    const read = () => setOrganizations(readScoped<Organization[]>(STORAGE_KEY) ?? []);
+    read();
+    return onScopedHydrated(read);
   }, []);
 
   const save = (next: Organization[]) => {
