@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { onScopedHydrated, readScoped, writeScoped } from "@/lib/scoped-storage";
 
 export type TodoItem = {
   id: string;
@@ -11,31 +12,26 @@ const STORAGE_KEY = "study-todos";
 const CHANGE_EVENT = "study-todos-changed";
 
 function load(): TodoItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as TodoItem[]) : [];
-    return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item.title === "string") : [];
-  } catch {
-    return [];
-  }
+  const parsed = readScoped<TodoItem[]>(STORAGE_KEY) ?? [];
+  return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item.title === "string") : [];
 }
 
 function save(items: TodoItem[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  window.dispatchEvent(new Event(CHANGE_EVENT));
+  writeScoped(STORAGE_KEY, items);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
 export function useTodos() {
   const [items, setItems] = useState<TodoItem[]>([]);
 
   useEffect(() => {
-    setItems(load());
     const refresh = () => setItems(load());
+    refresh();
+    const offHydrated = onScopedHydrated(refresh);
     window.addEventListener(CHANGE_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {
+      offHydrated();
       window.removeEventListener(CHANGE_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
